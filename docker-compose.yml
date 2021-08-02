@@ -1,6 +1,15 @@
 version: '3'
 services:
 
+  mysql:
+    image: mysql
+    ports:
+      - 3306:3306
+    restart: always
+    environment: 
+      MYSQL_ROOT_PASSWORD: root
+    command: --innodb-use-native-aio=0
+
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
     environment: 
@@ -38,8 +47,8 @@ services:
       CONNECT_CONFIG_STORAGE_TOPIC: _connect-configs
       CONNECT_OFFSET_STORAGE_TOPIC: _connect-offsets
       CONNECT_STATUS_STORAGE_TOPIC: _connect-status
-      CONNECT_KEY_CONVERTER: org.apache.kafka.connect.storage.StringConverter
-      CONNECT_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      CONNECT_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
       CONNECT_INTERNAL_KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
       CONNECT_INTERNAL_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
       CONNECT_REST_ADVERTISED_HOST_NAME: "kafka-connect"
@@ -52,6 +61,17 @@ services:
       CONNECT_PLUGIN_PATH: /usr/share/java,/usr/share/confluent-hub-components,/data/connect-jars
     volumes:
       - $PWD/data:/data
+    command:
+      - bash
+      - -c
+      - |
+        echo "Installing connector plugins"
+        confluent-hub install --no-prompt debezium/debezium-connector-mysql:1.6.0
+        #
+        echo "Launching Kafka Connect worker"
+        /etc/confluent/docker/run &
+        #
+        sleep infinity
 
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
@@ -62,4 +82,4 @@ services:
       KAFKA_CLUSTERS_0_KAFKACONNECT_0_NAME: connect
       KAFKA_CLUSTERS_0_KAFKACONNECT_0_ADDRESS: 'http://kafka-connect:8083'
     ports: 
-      - 8080:8080
+      - 8000:8080
