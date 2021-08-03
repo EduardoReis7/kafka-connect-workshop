@@ -67,6 +67,7 @@ services:
       - |
         echo "Installing connector plugins"
         confluent-hub install --no-prompt debezium/debezium-connector-mysql:1.6.0
+        confluent-hub install --no-prompt confluentinc/kafka-connect-elasticsearch:11.1.0
         #
         echo "Launching Kafka Connect worker"
         /etc/confluent/docker/run &
@@ -83,3 +84,30 @@ services:
       KAFKA_CLUSTERS_0_KAFKACONNECT_0_ADDRESS: 'http://kafka-connect:8083'
     ports: 
       - 8000:8080
+
+  es01:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.13.2
+    container_name: es01
+    environment:
+      - node.name=es01
+      - cluster.name=es-docker-cluster
+      - cluster.initial_master_nodes=es01
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - ./es01:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+
+  kibana:
+    container_name: kibana
+    image: docker.elastic.co/kibana/kibana:7.13.3
+    ports:
+      - 5601:5601
+    environment:
+      ELASTICSEARCH_URL: http://es01:9200
+      ELASTICSEARCH_HOSTS: '["http://es01:9200"]'

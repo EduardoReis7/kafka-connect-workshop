@@ -8,7 +8,8 @@
     "database.password": "root",
     "database.history.kafka.bootstrap.servers": "kafka:9092",
     "database.history.kafka.topic": "mysql-history",
+    "database.allowPublicKeyRetrieval": "true",
     "transforms": "ExtractField",
-    "transforms.ExtractField.type": "org.apache.kafka.connect.transforms.ExtractField$Key",
-    "transforms.ExtractField.field": "id"
+    "transforms.ExtractField.type":"org.apache.kafka.connect.transforms.ExtractField$Key",
+    "transforms.ExtractField.field":"id"
 }
